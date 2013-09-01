@@ -22,8 +22,8 @@ var reseturl string
 var restarturl string
 
 func init() {
-	flag.StringVar(&task, "task", "echo Watchdog timed out...", "Command to execute")
-	flag.StringVar(&duration, "time", "10s", "Time to wait")
+	flag.StringVar(&task, "task", "", "Command to execute. REQUIRED!")
+	flag.StringVar(&duration, "time", "", "Time to wait. REQUIRED!")
 	flag.IntVar(&port, "port", 8080, "TCP/IP Port to listen on")
 	flag.BoolVar(&local, "local", true, "Listen on localhost only")
 	flag.BoolVar(&stealth, "stealth", false, "No browser output (defaults to false)")
@@ -141,6 +141,12 @@ func listen(rc chan timerRecord, onetime bool) {
 
 func main() {
 	flag.Parse()
+	if task == "" {
+		log.Fatal("\"task\" flag required.")
+	}
+	if time == "" {
+		log.Fatal("\"time\" flag required.")
+	}
 	p := strconv.Itoa(port)
 	addr := "localhost:" + p
 	if local != true {
