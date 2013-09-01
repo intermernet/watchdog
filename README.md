@@ -4,7 +4,9 @@ It has some optional flags:
 
 `-task` will set the command to run (enclose in quotes if using args)
 
-`-time` will set the timer duration (use Go language time.Duration notation eg. 10h46m19s . defaults to 1s)
+`-time` will set the timer duration (use [Go language time.Duration notation](http://golang.org/pkg/time/#ParseDuration) eg. 10h46m19s . defaults to 1s)
+
+>>"A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h"."
 
 `-port` will set the TCP/IP port to listen on (defaults to port 8080)
 
