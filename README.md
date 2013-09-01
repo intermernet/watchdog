@@ -4,7 +4,7 @@ It has some flags, only the first 2 are required:
 
 `-task` will set the command to run (enclose in quotes if using args) *REQUIRED*
 
-`-time` will set the timer duration (use [Go language time.Duration notation](http://golang.org/pkg/time/#ParseDuration) eg. 10h46m19s . defaults to 1s) *REQUIRED*
+`-time` will set the timer duration (use [Go language time.Duration notation](http://golang.org/pkg/time/#ParseDuration) eg. 10h46m19s .) *REQUIRED*
 
 >>"A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h"."
 
