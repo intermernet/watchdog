@@ -17,15 +17,19 @@ var duration string
 var port int
 var local bool
 var stealth bool
-var urlpath string
+var onetime bool
+var reseturl string
+var restarturl string
 
 func init() {
 	flag.StringVar(&task, "task", "echo Watchdog timed out...", "Command to execute")
 	flag.StringVar(&duration, "time", "10s", "Time to wait")
 	flag.IntVar(&port, "port", 8080, "TCP/IP Port to listen on")
 	flag.BoolVar(&local, "local", true, "Listen on localhost only")
-	flag.BoolVar(&stealth, "stealth", false, "No browser output")
-	flag.StringVar(&urlpath, "urlpath", "/reset/", "URL Path to export")
+	flag.BoolVar(&stealth, "stealth", false, "No browser output (defaults to false)")
+	flag.BoolVar(&onetime, "onetime", false, "Run timer once only (defaults to false)")
+	flag.StringVar(&reseturl, "reseturl", "/reset/", "URL Path to export")
+	flag.StringVar(&restarturl, "restarturl", "/restart/", "URL Path to export")
 }
 
 func splitTaskString(task string) (string, []string, error) {
@@ -51,7 +55,6 @@ type timedTask struct {
 }
 
 func (tt *timedTask) start() {
-	defer close(tt.rc)
 	tt.timer = time.NewTimer(tt.d)
 	var tr timerRecord
 	select {
@@ -74,35 +77,65 @@ func (tt *timedTask) start() {
 	}
 }
 
-func makeHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask), tt *timedTask) http.HandlerFunc {
+func (tt *timedTask) stop() {
+	close(tt.rc)
+}
+
+func makeResetHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask), tt *timedTask) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fn(w, r, tt)
+	}
+}
+
+func makeRestartHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask, chan timerRecord), tt *timedTask, rc chan timerRecord) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fn(w, r, tt, rc)
 	}
 }
 
 func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	ct := time.Now()
 	et := ct.Add(tt.d)
-	if tt.timer.Reset(tt.d) {
-		if stealth {
-			http.NotFound(w, r)
-		} else {
-			fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /><title>%s</title>\n</head>\n<body>", urlpath)
+	if stealth {
+		http.NotFound(w, r)
+	} else {
+		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /><title>%s</title>\n</head>\n<body>", reseturl)
+		if tt.timer.Reset(tt.d) {
 			fmt.Fprintf(w, "Timer reset at %s.<br>\nTimer expires at %s.<br>\nRunning \"%s\" when expired.<br>", html.EscapeString(ct.Format(time.RFC3339)), html.EscapeString(et.Format(time.RFC3339)), html.EscapeString(tt.task))
-			fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>", urlpath)
-			fmt.Fprint(w, "</body>\n</html>")
+			fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>", reseturl)
+		} else {
+			fmt.Fprint(w, "Timer expired.<br>\n")
+			fmt.Fprint(w, "<a href=/restart/>Restart Timer</a>")
 		}
+		fmt.Fprint(w, "</body>\n</html>")
 	}
 }
 
-func listen(rc chan timerRecord) {
+func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask, rc chan timerRecord) {
+	tt.rc = rc
+	go tt.start()
+	ct := time.Now()
+	et := ct.Add(tt.d)
+	if stealth {
+		http.NotFound(w, r)
+	} else {
+		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /><title>%s</title>\n</head>\n<body>", reseturl)
+		fmt.Fprintf(w, "Timer restarted at %s.<br>\nTimer expires at %s.<br>\nRunning \"%s\" when expired.<br>", html.EscapeString(ct.Format(time.RFC3339)), html.EscapeString(et.Format(time.RFC3339)), html.EscapeString(tt.task))
+		fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>", reseturl)
+		fmt.Fprint(w, "</body>\n</html>")
+	}
+}
+
+func listen(rc chan timerRecord, onetime bool) {
 	for tr := range rc {
 		if tr.e != nil {
 			log.Println("Error: ", tr.e)
 		} else if tr.r != "" {
 			log.Println(tr.r)
 		}
-		log.Fatal("Exiting...")
+		if onetime {
+			log.Fatal("Exiting...")
+		}
 	}
 }
 
@@ -113,11 +146,11 @@ func main() {
 	if local != true {
 		addr = ":" + p
 	}
-	if !strings.HasPrefix(urlpath, "/") {
-		urlpath = "/" + urlpath
+	if !strings.HasPrefix(reseturl, "/") {
+		reseturl = "/" + reseturl
 	}
-	if !strings.HasSuffix(urlpath, "/") {
-		urlpath = urlpath + "/"
+	if !strings.HasSuffix(reseturl, "/") {
+		reseturl = reseturl + "/"
 	}
 	d, err := time.ParseDuration(duration)
 	if err != nil {
@@ -125,9 +158,13 @@ func main() {
 	}
 	rc := make(chan timerRecord)
 	tt := timedTask{task, d, nil, rc}
+	defer tt.stop()
 	go tt.start()
-	go listen(rc)
-	http.HandleFunc(urlpath, makeHandlerFunc(resetHandler, &tt))
+	go listen(rc, onetime)
+	http.HandleFunc(reseturl, makeResetHandlerFunc(resetHandler, &tt))
+	if !onetime {
+		http.HandleFunc(restarturl, makeRestartHandlerFunc(restartHandler, &tt, rc))
+	}
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal("ListenAndServe: " + err.Error())
 	}

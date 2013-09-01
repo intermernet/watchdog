@@ -1,6 +1,6 @@
 ###Watchdog is a task timer which presents a URL to reset the timer###
 
-It has 6 optional flags:
+It has some optional flags:
 
 `-task` will set the command to run (enclose in quotes if using args)
 
@@ -12,10 +12,16 @@ It has 6 optional flags:
 
 `-stealth` controls if the web server hides the task and timer information (Set true or false, defaults to false)
 
-`-urlpath` will set the url path to export (defaults to "/reset/")
+`-onetime` controls if the program exits after running the task once (Set true or false, defaults to false)
+
+`-reseturl` will set the url path to reset the timer (defaults to "/reset/")
+
+`-restarturl` will set the url path to restart the timer after it expires (defaults to "/restart/")
 
 ####Example usage:####
 
-`watchdog -task="/bin/sh ~/release_secret_documents.sh" -time=24h` will run the server on TCP/IP port 8080, will run the specified shell script in 1 day if not accessed at `http://localhost:8080/reset/` to reset the timer. Accessing the URL presents the timer and task information.
+`watchdog -task="/bin/sh ~/release_secret_documents.sh" -time=24h` will run the server on TCP/IP port 8080, will run the specified shell script in 1 day if not accessed at `http://localhost:8080/reset/` to reset the timer. Accessing the URL presents the timer and task information. The timer can be restarted after it expires by accessing `http://localhost:8080/restart/`
 
-`watchdog -task="rm -Rf ~/secret_docs" -time=168h -port=80 -local=false -stealth=true -urlpath=/` will run the server on TCP/IP port 80, will delete the specified directory in 1 week if not accessed at `http://your.domain/` to reset the timer. Accessing the URL will return a `404: Not Found` error.
+`watchdog -task="rm -Rf ~/secret_docs" -time=168h -port=80 -local=false -stealth=true -reseturl=/` will run the server on TCP/IP port 80, will delete the specified directory in 1 week if not accessed at `http://your.domain/` to reset the timer. Accessing the URL will return a `404: Not Found` error. The timer can be restarted after it expires by accessing `http://localhost:8080/restart/`
+
+`watchdog -task="rm -Rf ~/secret_docs" -time=168h -port=1337 -local=false -stealth=true -reseturl=/r3537/ -onetime=true` will run the server on TCP/IP port 80, will delete the specified directory in 1 week if not accessed at `http://your.domain:1337/r3537/` to reset the timer. Accessing the URL will return a `404: Not Found` error. The program will exit after the timer expires.
