@@ -105,7 +105,7 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 			fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>", reseturl)
 		} else {
 			fmt.Fprint(w, "Timer expired.<br>\n")
-			fmt.Fprint(w, "<a href=/restart/>Restart Timer</a>")
+			fmt.Fprintf(w, "<a href=\"%s\">Restart Timer</a>", restarturl)
 		}
 		fmt.Fprint(w, "</body>\n</html>")
 	}
