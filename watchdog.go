@@ -144,7 +144,7 @@ func main() {
 	if task == "" {
 		log.Fatal("\"task\" flag required.")
 	}
-	if time == "" {
+	if duration == "" {
 		log.Fatal("\"time\" flag required.")
 	}
 	p := strconv.Itoa(port)
