@@ -20,6 +20,8 @@ It has some flags, only the first 2 are required:
 
 `-restarturl` will set the url path to restart the timer after it expires (defaults to "/restart/")
 
+`-proxyurl` will set the url to redirect to after accessing either the reset or restart urls. (defaults to nothing)
+
 ####Example usage:####
 
 `watchdog -task=~/release_secret_documents.sh -time=24h` will run the server on TCP/IP port 8080, will run the specified shell script in 1 day if not accessed at `http://localhost:8080/reset/` to reset the timer. The timer can be restarted after it expires by accessing `http://localhost:8080/restart/` . Accessing either URL presents the timer and task information.
@@ -27,3 +29,5 @@ It has some flags, only the first 2 are required:
 `watchdog -task="rm -Rf ~/secret_docs" -time=168h -port=80 -local=false -stealth=true -reseturl=/` will run the server on TCP/IP port 80, will delete the specified directory in 1 week if not accessed at `http://your.ip.address/` to reset the timer. The timer can be restarted after it expires by accessing `http://your.ip.address/restart/` . Accessing either URL will return a `404: Not Found` error, but will still reset or restart the timer.
 
 `watchdog -task="shutdown now" -time=30m -port=1337 -onetime=true -reseturl=/r3537/` will run the server on TCP/IP port 1337, will shutdown the server in 30 minutes if not accessed at `http://localhost:1337/r3537/` to reset the timer. The program will exit after the timer expires. Accessing the reset URL will present the timer and task information. Accessing the restart URL will return a `404: Not Found` error, and will have no function.
+
+`watchdog -task=~/release_secret_documents.sh -time=24h -proxyurl=https://www.google.com.au/search?q=secret+documents` will run the server on TCP/IP port 8080, will run the specified shell script in 1 day if not accessed at `http://localhost:8080/reset/` to reset the timer. The timer can be restarted after it expires by accessing `http://localhost:8080/restart/` . Accessing either URL will redirect to the url specified by `-proxyurl`.

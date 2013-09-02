@@ -6,6 +6,7 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -20,6 +21,7 @@ var stealth bool
 var onetime bool
 var reseturl string
 var restarturl string
+var proxyurl string
 
 func init() {
 	flag.StringVar(&task, "task", "", "Command to execute. REQUIRED!")
@@ -30,6 +32,7 @@ func init() {
 	flag.BoolVar(&onetime, "onetime", false, "Run timer once only (defaults to false)")
 	flag.StringVar(&reseturl, "reseturl", "/reset/", "URL Path to export")
 	flag.StringVar(&restarturl, "restarturl", "/restart/", "URL Path to export")
+	flag.StringVar(&proxyurl, "proxyurl", "", "URL Path to redirect to after reset / restart")
 }
 
 func splitTaskString(task string) (string, []string, error) {
@@ -40,6 +43,17 @@ func splitTaskString(task string) (string, []string, error) {
 	} else {
 		return c, nil, nil
 	}
+}
+
+func parseUrl(u string) (string, error) {
+	if u == "" {
+		return u, nil
+	}
+	ur, err := url.Parse(u)
+	if err != nil {
+		return "", err
+	}
+	return ur.String(), nil
 }
 
 type timerRecord struct {
@@ -96,7 +110,11 @@ func makeRestartHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTa
 func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	ct := time.Now()
 	et := ct.Add(tt.d)
-	if stealth {
+	if proxyurl != "" {
+		if tt.timer.Reset(tt.d) {
+			http.Redirect(w, r, proxyurl, http.StatusFound)
+		}
+	} else if stealth {
 		http.NotFound(w, r)
 	} else {
 		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /><title>%s</title>\n</head>\n<body>", reseturl)
@@ -116,7 +134,9 @@ func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask, rc ch
 	go tt.start()
 	ct := time.Now()
 	et := ct.Add(tt.d)
-	if stealth {
+	if proxyurl != "" {
+		http.Redirect(w, r, proxyurl, http.StatusFound)
+	} else if stealth {
 		http.NotFound(w, r)
 	} else {
 		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /><title>%s</title>\n</head>\n<body>", restarturl)
@@ -147,6 +167,18 @@ func main() {
 	if duration == "" {
 		log.Fatal("\"time\" flag required.")
 	}
+	reseturl, err := parseUrl(reseturl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	restarturl, err = parseUrl(restarturl)
+	if err != nil {
+		log.Fatal(err)
+	}
+	proxyurl, err = parseUrl(proxyurl)
+	if err != nil {
+		log.Fatal(err)
+	}
 	p := strconv.Itoa(port)
 	addr := "localhost:" + p
 	if local != true {
@@ -157,6 +189,12 @@ func main() {
 	}
 	if !strings.HasSuffix(reseturl, "/") {
 		reseturl = reseturl + "/"
+	}
+	if !strings.HasPrefix(restarturl, "/") {
+		restarturl = "/" + restarturl
+	}
+	if !strings.HasSuffix(restarturl, "/") {
+		restarturl = restarturl + "/"
 	}
 	d, err := time.ParseDuration(duration)
 	if err != nil {
