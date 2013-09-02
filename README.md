@@ -12,9 +12,9 @@ It has some flags, only the first 2 are required:
 
 `-local` controls if the web server is only listening on `localhost` (Set true or false, defaults to true)
 
-`-stealth` controls if the web server hides the task and timer information (Set true or false, defaults to false)
+`-stealth` controls if the web server hides the task and timer information (Set true or false, defaults to false, over-ridden by `-redirurl`)
 
-`-onetime` controls if the program exits after running the task once (Set true or false, defaults to false, over-ridden by `-redirurl`)
+`-onetime` controls if the program exits after running the task once (Set true or false, defaults to false)
 
 `-reseturl` will set the URL path to reset the timer (defaults to "/reset/")
 
