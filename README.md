@@ -14,13 +14,13 @@ It has some flags, only the first 2 are required:
 
 `-stealth` controls if the web server hides the task and timer information (Set true or false, defaults to false)
 
-`-onetime` controls if the program exits after running the task once (Set true or false, defaults to false)
+`-onetime` controls if the program exits after running the task once (Set true or false, defaults to false, over-ridden by `-redirurl`)
 
 `-reseturl` will set the URL path to reset the timer (defaults to "/reset/")
 
 `-restarturl` will set the URL path to restart the timer after it expires (defaults to "/restart/")
 
-`-redirurl` will set the URL to redirect to after accessing either the reset or restart URLs. (defaults to nothing)
+`-redirurl` will set the URL to redirect to after accessing either the reset or restart URLs. (defaults to nothing, over-rides `-stealth`)
 
 ####Example usage:####
 
