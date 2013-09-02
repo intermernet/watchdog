@@ -16,11 +16,11 @@ It has some flags, only the first 2 are required:
 
 `-onetime` controls if the program exits after running the task once (Set true or false, defaults to false)
 
-`-reseturl` will set the url path to reset the timer (defaults to "/reset/")
+`-reseturl` will set the URL path to reset the timer (defaults to "/reset/")
 
-`-restarturl` will set the url path to restart the timer after it expires (defaults to "/restart/")
+`-restarturl` will set the URL path to restart the timer after it expires (defaults to "/restart/")
 
-`-proxyurl` will set the url to redirect to after accessing either the reset or restart urls. (defaults to nothing)
+`-proxyurl` will set the URL to redirect to after accessing either the reset or restart URLs. (defaults to nothing)
 
 ####Example usage:####
 
@@ -30,4 +30,4 @@ It has some flags, only the first 2 are required:
 
 `watchdog -task="shutdown now" -time=30m -port=1337 -onetime=true -reseturl=/r3537/` will run the server on TCP/IP port 1337, will shutdown the server in 30 minutes if not accessed at `http://localhost:1337/r3537/` to reset the timer. The program will exit after the timer expires. Accessing the reset URL will present the timer and task information. Accessing the restart URL will return a `404: Not Found` error, and will have no function.
 
-`watchdog -task="wakeonlan 73:37:de:ad:be:ef" -time=48h -proxyurl=http://www.google.com/` will run the server on TCP/IP port 8080, will wake the computer with the specified MAC address in 2 days if not accessed at `http://localhost:8080/reset/` to reset the timer. The timer can be restarted after it expires by accessing `http://localhost:8080/restart/` . Accessing either URL will redirect to the url specified by `-proxyurl`, but will still reset or restart the timer.
+`watchdog -task="wakeonlan 73:37:de:ad:be:ef" -time=48h -proxyurl=http://www.google.com/` will run the server on TCP/IP port 8080, will wake the computer with the specified MAC address in 2 days if not accessed at `http://localhost:8080/reset/` to reset the timer. The timer can be restarted after it expires by accessing `http://localhost:8080/restart/` . Accessing either URL will redirect to the URL specified by `-proxyurl`, but will still reset or restart the timer.
