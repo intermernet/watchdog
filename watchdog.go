@@ -1,3 +1,11 @@
+/*
+Copyright Mike Hughes 2013 (intermernet AT gmail DOT com)
+
+Watchdog is a task timer with web based reset / restart written in Go.
+It acts as a dead man's switch for a defined task. (http://en.wikipedia.org/wiki/Dead_man's_switch)
+
+LICENSE: BSD 3-Clause License (see http://opensource.org/licenses/BSD-3-Clause)
+*/
 package main
 
 import (
