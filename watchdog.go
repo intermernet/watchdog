@@ -45,17 +45,6 @@ func splitTaskString(task string) (string, []string, error) {
 	}
 }
 
-func parseUrl(u string) (string, error) {
-	if u == "" {
-		return u, nil
-	}
-	ur, err := url.Parse(u)
-	if err != nil {
-		return "", err
-	}
-	return ur.String(), nil
-}
-
 type timerRecord struct {
 	r string
 	e error
@@ -161,24 +150,21 @@ func listen(rc chan timerRecord, onetime bool) {
 
 func main() {
 	flag.Parse()
+	errtxt := ""
 	if task == "" {
-		log.Fatal("\"task\" flag required.")
+		errtxt += "\"task\" flag required\n"
 	}
 	if duration == "" {
-		log.Fatal("\"time\" flag required.")
+		errtxt += "\"time\" flag required\n"
 	}
-	reseturl, err := parseUrl(reseturl)
+	if errtxt != "" {
+		log.Fatal("\n", errtxt)
+	}
+	ur, err := url.Parse(proxyurl)
 	if err != nil {
 		log.Fatal(err)
 	}
-	restarturl, err = parseUrl(restarturl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	proxyurl, err = parseUrl(proxyurl)
-	if err != nil {
-		log.Fatal(err)
-	}
+	proxyurl = ur.String()
 	p := strconv.Itoa(port)
 	addr := "localhost:" + p
 	if local != true {
