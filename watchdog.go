@@ -22,7 +22,7 @@ import (
 )
 
 var task string
-var duration string
+var duration time.Duration
 var port int
 var local bool
 var stealth bool
@@ -33,7 +33,7 @@ var redirurl string
 
 func init() {
 	flag.StringVar(&task, "task", "", "Command to execute. REQUIRED!")
-	flag.StringVar(&duration, "time", "", "Time to wait. REQUIRED!")
+	flag.DurationVar(&duration, "time", 0*time.Second, "Time to wait. REQUIRED!")
 	flag.IntVar(&port, "port", 8080, "TCP/IP Port to listen on")
 	flag.BoolVar(&local, "local", true, "Listen on localhost only")
 	flag.BoolVar(&stealth, "stealth", false, "No browser output (defaults to false)")
@@ -162,8 +162,8 @@ func main() {
 	if task == "" {
 		errtxt += "\"task\" flag required\n"
 	}
-	if duration == "" {
-		errtxt += "\"time\" flag required\n"
+	if duration <= 0*time.Second {
+		errtxt += "\"time\" flag required, and must be positive.\n"
 	}
 	if errtxt != "" {
 		log.Fatal("\n", errtxt)
@@ -190,12 +190,8 @@ func main() {
 	if !strings.HasSuffix(restarturl, "/") {
 		restarturl = restarturl + "/"
 	}
-	d, err := time.ParseDuration(duration)
-	if err != nil {
-		log.Fatal(err)
-	}
 	rc := make(chan timerRecord)
-	tt := timedTask{task, d, nil, rc}
+	tt := timedTask{task, duration, nil, rc}
 	defer tt.stop()
 	go tt.start()
 	go listen(rc, onetime)

@@ -2,13 +2,13 @@
 
 It has some flags, only the first 2 are required:
 
-`-task` will set the command to run (enclose in quotes if using args) *REQUIRED*
+`-task` will set the command to run (Enclose in quotes if using args) *REQUIRED*
 
-`-time` will set the timer duration (use [Go language time.Duration notation](http://golang.org/pkg/time/#ParseDuration) eg. 10h46m19s .) *REQUIRED*
+`-time` will set the timer duration (Use [Go language time.Duration notation](http://golang.org/pkg/time/#ParseDuration) eg. 10h46m19s . Must be positive.) *REQUIRED*
 
 >>"A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h"."
 
-`-port` will set the TCP/IP port to listen on (defaults to port 8080)
+`-port` will set the TCP/IP port to listen on (Defaults to port 8080)
 
 `-local` controls if the web server is only listening on `localhost` (Set true or false, defaults to true)
 
@@ -16,11 +16,11 @@ It has some flags, only the first 2 are required:
 
 `-onetime` controls if the program exits after running the task once (Set true or false, defaults to false)
 
-`-reseturl` will set the URL path to reset the timer (defaults to "/reset/")
+`-reseturl` will set the URL path to reset the timer (Defaults to "/reset/")
 
-`-restarturl` will set the URL path to restart the timer after it expires (defaults to "/restart/")
+`-restarturl` will set the URL path to restart the timer after it expires (Defaults to "/restart/")
 
-`-redirurl` will set the URL to redirect to after accessing either the reset or restart URLs. (defaults to nothing, over-rides `-stealth`)
+`-redirurl` will set the URL to redirect to after accessing either the reset or restart URLs. (Defaults to nothing, over-rides `-stealth`)
 
 ####Example usage:####
 
