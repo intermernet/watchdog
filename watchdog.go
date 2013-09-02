@@ -21,7 +21,7 @@ var stealth bool
 var onetime bool
 var reseturl string
 var restarturl string
-var proxyurl string
+var redirurl string
 
 func init() {
 	flag.StringVar(&task, "task", "", "Command to execute. REQUIRED!")
@@ -32,7 +32,7 @@ func init() {
 	flag.BoolVar(&onetime, "onetime", false, "Run timer once only (defaults to false)")
 	flag.StringVar(&reseturl, "reseturl", "/reset/", "URL Path to export")
 	flag.StringVar(&restarturl, "restarturl", "/restart/", "URL Path to export")
-	flag.StringVar(&proxyurl, "proxyurl", "", "URL Path to redirect to after reset / restart")
+	flag.StringVar(&redirurl, "redirurl", "", "URL Path to redirect to after reset / restart")
 }
 
 func splitTaskString(task string) (string, []string, error) {
@@ -99,9 +99,9 @@ func makeRestartHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTa
 func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	ct := time.Now()
 	et := ct.Add(tt.d)
-	if proxyurl != "" {
+	if redirurl != "" {
 		if tt.timer.Reset(tt.d) {
-			http.Redirect(w, r, proxyurl, http.StatusFound)
+			http.Redirect(w, r, redirurl, http.StatusFound)
 		}
 	} else if stealth {
 		http.NotFound(w, r)
@@ -123,8 +123,8 @@ func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask, rc ch
 	go tt.start()
 	ct := time.Now()
 	et := ct.Add(tt.d)
-	if proxyurl != "" {
-		http.Redirect(w, r, proxyurl, http.StatusFound)
+	if redirurl != "" {
+		http.Redirect(w, r, redirurl, http.StatusFound)
 	} else if stealth {
 		http.NotFound(w, r)
 	} else {
@@ -160,11 +160,11 @@ func main() {
 	if errtxt != "" {
 		log.Fatal("\n", errtxt)
 	}
-	ur, err := url.Parse(proxyurl)
+	ur, err := url.Parse(redirurl)
 	if err != nil {
 		log.Fatal(err)
 	}
-	proxyurl = ur.String()
+	redirurl = ur.String()
 	p := strconv.Itoa(port)
 	addr := "localhost:" + p
 	if local != true {
