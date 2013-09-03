@@ -143,7 +143,7 @@ func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask, rc ch
 	}
 }
 
-func listen(rc chan timerRecord, onetime bool) {
+func listen(rc chan timerRecord) {
 	for tr := range rc {
 		if tr.e != nil {
 			log.Println("Error: ", tr.e)
@@ -194,7 +194,7 @@ func main() {
 	tt := timedTask{task, duration, nil, rc}
 	defer tt.stop()
 	go tt.start()
-	go listen(rc, onetime)
+	go listen(rc)
 	http.HandleFunc(reseturl, makeResetHandlerFunc(resetHandler, &tt))
 	if !onetime {
 		http.HandleFunc(restarturl, makeRestartHandlerFunc(restartHandler, &tt, rc))
