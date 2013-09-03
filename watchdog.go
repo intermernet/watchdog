@@ -185,9 +185,9 @@ func main() {
 		log.Fatal("\n", errtxt)
 	}
 	p := strconv.Itoa(port)
-	addr := "localhost:" + p
-	if local != true {
-		addr = ":" + p
+	addr := ":" + p
+	if local == true {
+		addr = "localhost" + addr
 	}
 	reseturl = addSlashes(reseturl)
 	restarturl = addSlashes(restarturl)
