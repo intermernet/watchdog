@@ -54,6 +54,16 @@ func splitTaskString(task string) (string, []string, error) {
 	}
 }
 
+func addSlashes(s string) string {
+	if !strings.HasPrefix(s, "/") {
+		s = "/" + s
+	}
+	if !strings.HasSuffix(s, "/") {
+		s = s + "/"
+	}
+	return s
+}
+
 type timerRecord struct {
 	r string
 	e error
@@ -174,28 +184,18 @@ func main() {
 	if errtxt != "" {
 		log.Fatal("\n", errtxt)
 	}
-	ur, err := url.Parse(redirurl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	redirurl = ur.String()
 	p := strconv.Itoa(port)
 	addr := "localhost:" + p
 	if local != true {
 		addr = ":" + p
 	}
-	if !strings.HasPrefix(reseturl, "/") {
-		reseturl = "/" + reseturl
+	reseturl = addSlashes(reseturl)
+	restarturl = addSlashes(restarturl)
+	ur, err := url.Parse(redirurl)
+	if err != nil {
+		log.Fatal(err)
 	}
-	if !strings.HasSuffix(reseturl, "/") {
-		reseturl = reseturl + "/"
-	}
-	if !strings.HasPrefix(restarturl, "/") {
-		restarturl = "/" + restarturl
-	}
-	if !strings.HasSuffix(restarturl, "/") {
-		restarturl = restarturl + "/"
-	}
+	redirurl = ur.String()
 	rc := make(chan timerRecord)
 	tt := timedTask{task, duration, nil, rc}
 	oc := make(chan string)
