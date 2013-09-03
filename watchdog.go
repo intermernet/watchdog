@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -34,7 +35,7 @@ var redirurl string
 
 func init() {
 	flag.StringVar(&task, "task", "", "Command to execute. REQUIRED!")
-	flag.DurationVar(&duration, "time", 0*time.Second, "Time to wait. REQUIRED!")
+	flag.DurationVar(&duration, "time", 0*time.Second, "Time to wait. REQUIRED!\n   (-time Example 10h5m46s\n   See http://golang.org/pkg/time/#ParseDuration for formatting rules)")
 	flag.IntVar(&port, "port", 8080, "TCP/IP Port to listen on")
 	flag.BoolVar(&local, "local", true, "Listen on localhost only")
 	flag.BoolVar(&stealth, "stealth", false, "No browser output (defaults to false)")
@@ -182,7 +183,9 @@ func main() {
 		errtxt += "\"time\" flag required, and must be positive.\n"
 	}
 	if errtxt != "" {
-		log.Fatal("\n", errtxt)
+		log.Printf("%s\n", errtxt)
+		flag.Usage()
+		os.Exit(1)
 	}
 	addr := ":" + strconv.Itoa(port)
 	if local == true {
