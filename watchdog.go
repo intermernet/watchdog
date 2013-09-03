@@ -100,15 +100,9 @@ func (tt *timedTask) start() {
 	}
 }
 
-func makeResetHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask), tt *timedTask) http.HandlerFunc {
+func makeHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask), tt *timedTask) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fn(w, r, tt)
-	}
-}
-
-func makeRestartHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask, chan timerRecord), tt *timedTask, rc chan timerRecord) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		fn(w, r, tt, rc)
 	}
 }
 
@@ -133,8 +127,8 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	}
 }
 
-func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask, rc chan timerRecord) {
-	tt.rc = rc
+// Adding edits
+func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	go tt.start()
 	ct := time.Now()
 	et := ct.Add(tt.d)
@@ -163,10 +157,10 @@ func listen(rc chan timerRecord, oc chan string, ec chan error) {
 	}
 }
 
-func launch(addr string, tt *timedTask, rc chan timerRecord, ec chan error) {
-	http.HandleFunc(reseturl, makeResetHandlerFunc(resetHandler, tt))
+func launch(addr string, tt *timedTask, ec chan error) {
+	http.HandleFunc(reseturl, makeHandlerFunc(resetHandler, tt))
 	if !onetime {
-		http.HandleFunc(restarturl, makeRestartHandlerFunc(restartHandler, tt, rc))
+		http.HandleFunc(restarturl, makeHandlerFunc(restartHandler, tt))
 	}
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		ec <- errors.New("ListenAndServe: " + err.Error())
@@ -207,7 +201,7 @@ func main() {
 	defer close(ec)
 	go tt.start()
 	go listen(rc, oc, ec)
-	go launch(addr, &tt, rc, ec)
+	go launch(addr, &tt, ec)
 	for {
 		select {
 		case out := <-oc:
