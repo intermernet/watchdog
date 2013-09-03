@@ -9,6 +9,7 @@ LICENSE: BSD 3-Clause License (see http://opensource.org/licenses/BSD-3-Clause)
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"html"
@@ -88,10 +89,6 @@ func (tt *timedTask) start() {
 	}
 }
 
-func (tt *timedTask) stop() {
-	close(tt.rc)
-}
-
 func makeResetHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask), tt *timedTask) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fn(w, r, tt)
@@ -143,16 +140,26 @@ func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask, rc ch
 	}
 }
 
-func listen(rc chan timerRecord) {
+func listen(rc chan timerRecord, oc chan string, ec chan error) {
 	for tr := range rc {
 		if tr.e != nil {
-			log.Println("Error: ", tr.e)
+			ec <- tr.e
 		} else if tr.r != "" {
-			log.Println(tr.r)
+			oc <- tr.r
 		}
 		if onetime {
-			log.Fatal("Exiting...")
+			ec <- errors.New("Exiting...")
 		}
+	}
+}
+
+func launch(addr string, tt *timedTask, rc chan timerRecord, ec chan error) {
+	http.HandleFunc(reseturl, makeResetHandlerFunc(resetHandler, tt))
+	if !onetime {
+		http.HandleFunc(restarturl, makeRestartHandlerFunc(restartHandler, tt, rc))
+	}
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		ec <- errors.New("ListenAndServe: " + err.Error())
 	}
 }
 
@@ -192,14 +199,20 @@ func main() {
 	}
 	rc := make(chan timerRecord)
 	tt := timedTask{task, duration, nil, rc}
-	defer tt.stop()
+	oc := make(chan string)
+	ec := make(chan error)
+	defer close(rc)
+	defer close(oc)
+	defer close(ec)
 	go tt.start()
-	go listen(rc)
-	http.HandleFunc(reseturl, makeResetHandlerFunc(resetHandler, &tt))
-	if !onetime {
-		http.HandleFunc(restarturl, makeRestartHandlerFunc(restartHandler, &tt, rc))
-	}
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatal("ListenAndServe: " + err.Error())
+	go listen(rc, oc, ec)
+	go launch(addr, &tt, rc, ec)
+	for {
+		select {
+		case out := <-oc:
+			log.Println(out)
+		case err := <-ec:
+			log.Fatal(err.Error())
+		}
 	}
 }
