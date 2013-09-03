@@ -105,9 +105,8 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	ct := time.Now()
 	et := ct.Add(tt.d)
 	if redirurl != "" {
-		if tt.timer.Reset(tt.d) {
-			http.Redirect(w, r, redirurl, http.StatusFound)
-		}
+		tt.timer.Reset(tt.d)
+		http.Redirect(w, r, redirurl, http.StatusFound)
 	} else if stealth {
 		http.NotFound(w, r)
 	} else {
