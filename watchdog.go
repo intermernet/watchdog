@@ -120,7 +120,7 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	} else if stealth {
 		http.NotFound(w, r)
 	} else {
-		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /><title>%s</title>\n</head>\n<body>", reseturl)
+		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>%s</title>\n</head>\n<body>", reseturl)
 		if tt.timer.Reset(tt.d) {
 			fmt.Fprintf(w, "Timer reset at %s.<br>\nTimer expires at %s.<br>\nRunning \"%s\" when expired.<br>", html.EscapeString(ct.Format(time.RFC3339)), html.EscapeString(et.Format(time.RFC3339)), html.EscapeString(tt.task))
 			fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>", reseturl)
@@ -142,7 +142,7 @@ func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask, rc ch
 	} else if stealth {
 		http.NotFound(w, r)
 	} else {
-		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" /><title>%s</title>\n</head>\n<body>", restarturl)
+		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>%s</title>\n</head>\n<body>", restarturl)
 		fmt.Fprintf(w, "Timer restarted at %s.<br>\nTimer expires at %s.<br>\nRunning \"%s\" when expired.<br>", html.EscapeString(ct.Format(time.RFC3339)), html.EscapeString(et.Format(time.RFC3339)), html.EscapeString(tt.task))
 		fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>", reseturl)
 		fmt.Fprint(w, "</body>\n</html>")
