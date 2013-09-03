@@ -127,7 +127,6 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	}
 }
 
-// Adding edits
 func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	go tt.start()
 	ct := time.Now()
