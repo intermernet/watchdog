@@ -184,8 +184,7 @@ func main() {
 	if errtxt != "" {
 		log.Fatal("\n", errtxt)
 	}
-	p := strconv.Itoa(port)
-	addr := ":" + p
+	addr := ":" + strconv.Itoa(port)
 	if local == true {
 		addr = "localhost" + addr
 	}
