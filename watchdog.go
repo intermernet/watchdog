@@ -113,6 +113,7 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 		tt.timer.Reset(tt.d)
 		http.Redirect(w, r, redirurl, http.StatusFound)
 	} else if stealth {
+		tt.timer.Reset(tt.d)
 		http.NotFound(w, r)
 	} else {
 		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>%s</title>\n</head>\n<body>\n", reseturl)
