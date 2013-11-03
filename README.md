@@ -1,5 +1,7 @@
 ###Watchdog is a task timer which presents a URL to reset the timer###
 
+[![Build Status](https://drone.io/github.com/Intermernet/watchdog/status.png)](https://drone.io/github.com/Intermernet/watchdog/latest)
+
 It has some flags, only the first 2 are required:
 
 `-task` will set the command to run (Enclose in quotes if using args) *REQUIRED*
