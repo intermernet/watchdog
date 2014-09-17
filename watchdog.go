@@ -111,17 +111,18 @@ func makeHandlerFunc(fn func(http.ResponseWriter, *http.Request, *timedTask), tt
 func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	ct := time.Now()
 	et := ct.Add(tt.d)
-	if redirurl != "" {
+	switch {
+	case redirurl != "":
 		tt.Lock()
 		tt.timer.Reset(tt.d)
 		tt.Unlock()
 		http.Redirect(w, r, redirurl, http.StatusFound)
-	} else if stealth {
+	case stealth:
 		tt.Lock()
 		tt.timer.Reset(tt.d)
 		tt.Unlock()
 		http.NotFound(w, r)
-	} else {
+	default:
 		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>%s</title>\n</head>\n<body>\n", reseturl)
 		tt.Lock()
 		if tt.timer.Reset(tt.d) {
@@ -140,11 +141,12 @@ func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	go tt.start()
 	ct := time.Now()
 	et := ct.Add(tt.d)
-	if redirurl != "" {
+	switch {
+	case redirurl != "":
 		http.Redirect(w, r, redirurl, http.StatusFound)
-	} else if stealth {
+	case stealth:
 		http.NotFound(w, r)
-	} else {
+	default:
 		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>%s</title>\n</head>\n<body>\n", restarturl)
 		fmt.Fprintf(w, "Timer restarted at %s.<br>\nTimer expires at %s.<br>\nRunning \"%s\" when expired.<br>\n", html.EscapeString(ct.Format(time.RFC3339)), html.EscapeString(et.Format(time.RFC3339)), html.EscapeString(tt.task))
 		fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>\n", reseturl)
@@ -154,9 +156,10 @@ func restartHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 
 func listen(rc chan timerRecord, oc chan string, ec chan error) {
 	for tr := range rc {
-		if tr.e != nil {
+		switch {
+		case tr.e != nil:
 			ec <- tr.e
-		} else if tr.r != "" {
+		case tr.r != "":
 			oc <- tr.r
 		}
 		if onetime {
