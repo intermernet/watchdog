@@ -24,15 +24,12 @@ import (
 	"time"
 )
 
-var task string
-var duration time.Duration
-var port int
-var local bool
-var stealth bool
-var onetime bool
-var reseturl string
-var restarturl string
-var redirurl string
+var (
+	task, reseturl, restarturl, redirurl string
+	local, stealth, onetime              bool
+	port                                 int
+	duration                             time.Duration
+)
 
 func init() {
 	flag.StringVar(&task, "task", "", "Command to execute. REQUIRED!")
