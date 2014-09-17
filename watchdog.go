@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -75,10 +76,14 @@ type timedTask struct {
 	d     time.Duration
 	timer *time.Timer
 	rc    chan timerRecord
+
+	*sync.Mutex
 }
 
 func (tt *timedTask) start() {
+	tt.Lock()
 	tt.timer = time.NewTimer(tt.d)
+	tt.Unlock()
 	var tr timerRecord
 	select {
 	case <-tt.timer.C:
@@ -110,13 +115,18 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 	ct := time.Now()
 	et := ct.Add(tt.d)
 	if redirurl != "" {
+		tt.Lock()
 		tt.timer.Reset(tt.d)
+		tt.Unlock()
 		http.Redirect(w, r, redirurl, http.StatusFound)
 	} else if stealth {
+		tt.Lock()
 		tt.timer.Reset(tt.d)
+		tt.Unlock()
 		http.NotFound(w, r)
 	} else {
 		fmt.Fprintf(w, "<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>%s</title>\n</head>\n<body>\n", reseturl)
+		tt.Lock()
 		if tt.timer.Reset(tt.d) {
 			fmt.Fprintf(w, "Timer reset at %s.<br>\nTimer expires at %s.<br>\nRunning \"%s\" when expired.<br>\n", html.EscapeString(ct.Format(time.RFC3339)), html.EscapeString(et.Format(time.RFC3339)), html.EscapeString(tt.task))
 			fmt.Fprintf(w, "<a href=\"%s\">Reset Timer</a>\n", reseturl)
@@ -124,6 +134,7 @@ func resetHandler(w http.ResponseWriter, r *http.Request, tt *timedTask) {
 			fmt.Fprint(w, "Timer expired.<br>\n")
 			fmt.Fprintf(w, "<a href=\"%s\">Restart Timer</a>\n", restarturl)
 		}
+		tt.Unlock()
 		fmt.Fprint(w, "</body>\n</html>")
 	}
 }
@@ -193,7 +204,7 @@ func main() {
 	}
 	redirurl = ur.String()
 	rc := make(chan timerRecord)
-	tt := timedTask{task, duration, nil, rc}
+	tt := timedTask{task, duration, nil, rc, &sync.Mutex{}}
 	oc := make(chan string)
 	ec := make(chan error)
 	defer close(rc)
