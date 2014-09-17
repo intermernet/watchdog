@@ -202,7 +202,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	redirurl = ur.String()
+	redirurl = fmt.Sprintf("%s", ur)
 	rc := make(chan timerRecord)
 	tt := timedTask{task, duration, nil, rc, &sync.Mutex{}}
 	oc := make(chan string)
