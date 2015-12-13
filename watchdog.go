@@ -48,9 +48,8 @@ func splitTaskString(task string) (string, []string, error) {
 	c := argv[0]
 	if len(argv) > 1 {
 		return c, argv[1:], nil
-	} else {
-		return c, nil, nil
 	}
+	return c, nil, nil
 }
 
 func addSlashes(s string) string {
